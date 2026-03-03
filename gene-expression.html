@@ -6,6 +6,9 @@
 <title>Gene Expression · T1D Spatial Atlas</title>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
   .gene-wrap {
     max-width: 1200px;
@@ -13,14 +16,13 @@
     padding: 40px 56px 72px;
   }
 
-  /* Search bar */
+  /* ── Search bar ── */
   .gene-search-row {
     display: flex;
     gap: 10px;
-    margin-bottom: 32px;
+    margin-bottom: 20px;
     align-items: center;
   }
-
   .gene-search {
     flex: 1;
     border: 1px solid var(--border2);
@@ -35,7 +37,6 @@
   }
   .gene-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
   .gene-search::placeholder { color: var(--light); font-family: 'Inter', sans-serif; }
-
   .gene-search-btn {
     background: var(--accent);
     color: white;
@@ -51,7 +52,34 @@
   }
   .gene-search-btn:hover { background: #1d4fd8; }
 
-  /* Quick gene chips */
+  /* ── Autocomplete dropdown ── */
+  .gene-search-wrap { position: relative; }
+  .gene-autocomplete {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 60px; /* stop before the button */
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    z-index: 200;
+    max-height: 196px;
+    overflow-y: auto;
+  }
+  .gene-ac-item {
+    padding: 9px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .gene-ac-item:last-child { border-bottom: none; }
+  .gene-ac-item:hover { background: var(--accent-light); color: var(--accent); }
+
+  /* ── Quick gene chips ── */
   .gene-chips {
     display: flex;
     gap: 8px;
@@ -59,14 +87,12 @@
     margin-bottom: 36px;
     align-items: center;
   }
-
   .gene-chips-label {
     font-size: 0.75rem;
     color: var(--light);
     font-weight: 500;
     margin-right: 4px;
   }
-
   .gene-chip {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
@@ -78,153 +104,36 @@
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.15s;
+    user-select: none;
   }
-  .gene-chip:hover { background: var(--accent); color: white; }
+  .gene-chip:hover  { background: var(--accent); color: white; }
+  .gene-chip.active { background: var(--accent); color: white; }
 
-  /* Results area */
-  .gene-results-grid {
-    display: grid;
-    grid-template-columns: 1fr 320px;
+  /* ── Chart cards ── */
+  .viz-charts-row {
+    display: flex;
     gap: 20px;
-    align-items: start;
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
-
-  /* Heatmap table */
-  .heatmap-card {
+  .viz-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    overflow: hidden;
+    padding: 20px 20px 14px;
+    flex: 0 0 auto;
   }
-
-  .heatmap-head {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .heatmap-title {
-    font-size: 0.82rem;
+  .viz-card-title {
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--navy);
+    margin-bottom: 10px;
+    font-family: 'Inter', sans-serif;
   }
-
-  .heatmap-subtitle {
-    font-size: 0.72rem;
-    color: var(--light);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-  }
-
-  thead th {
-    padding: 10px 14px;
-    text-align: right;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-  }
-
-  thead th:first-child { text-align: left; }
-
-  tbody tr { transition: background 0.12s; }
-  tbody tr:hover { background: var(--bg); }
-  tbody tr + tr { border-top: 1px solid var(--border); }
-
-  tbody td {
-    padding: 10px 14px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--muted);
-  }
-
-  tbody td:first-child {
-    color: var(--navy);
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .expr-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-
-  .expr-track {
-    width: 80px;
-    height: 8px;
-    background: var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .expr-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.3s;
-  }
-
-  .expr-val { font-size: 0.72rem; color: var(--muted); min-width: 36px; text-align: right; }
-
-  /* Side info panel */
-  .gene-info-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    position: sticky;
-    top: 84px;
-  }
-
-  .gene-info-head {
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--border);
-    background: var(--navy);
-    color: white;
-  }
-
-  .gene-info-name {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-
-  .gene-info-full {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.6);
-  }
-
-  .gene-info-body { padding: 16px 18px; }
-
-  .gene-info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.8rem;
-  }
-  .gene-info-row:last-child { border-bottom: none; }
-
-  .gene-info-row-label { color: var(--muted); }
-  .gene-info-row-val { color: var(--navy); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
 
   @media (max-width: 900px) {
     .gene-wrap { padding: 24px; }
-    .gene-results-grid { grid-template-columns: 1fr; }
-    .gene-info-card { position: static; }
+    .viz-charts-row { flex-direction: column; }
   }
 </style>
 </head>
@@ -259,121 +168,7 @@
 </div>
 
 <div class="gene-wrap">
-  <!-- Search -->
-  <div class="gene-search-row">
-    <input class="gene-search" type="text" placeholder="Search gene (e.g. INS, HLA-A, CD8A, STAT1)…" value="INS">
-    <button class="gene-search-btn">Search</button>
-  </div>
-
-  <!-- Quick genes -->
-  <div class="gene-chips">
-    <span class="gene-chips-label">Quick:</span>
-    <span class="gene-chip">INS</span>
-    <span class="gene-chip">GCG</span>
-    <span class="gene-chip">SST</span>
-    <span class="gene-chip">PPY</span>
-    <span class="gene-chip">CD8A</span>
-    <span class="gene-chip">FOXP3</span>
-    <span class="gene-chip">HLA-A</span>
-    <span class="gene-chip">STAT1</span>
-    <span class="gene-chip">IRF1</span>
-    <span class="gene-chip">CDKN1A</span>
-  </div>
-
-  <!-- Results -->
-  <div class="gene-results-grid">
-    <!-- Heatmap/table -->
-    <div class="heatmap-card">
-      <div class="heatmap-head">
-        <div>
-          <div class="heatmap-title">INS expression across cell types &amp; stages</div>
-          <div class="heatmap-subtitle">mean normalized expression · all donors · all FOVs</div>
-        </div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Cell Type</th>
-            <th>Control</th>
-            <th>AB⁺LN⁻</th>
-            <th>AB⁺LN⁺</th>
-            <th>T1D</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Beta cell</td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:92%;background:#3b82f6"></div></div><span class="expr-val">9.2</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:80%;background:#f59e0b"></div></div><span class="expr-val">8.0</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:61%;background:#ea580c"></div></div><span class="expr-val">6.1</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:32%;background:#dc2626"></div></div><span class="expr-val">3.2</span></div></td>
-          </tr>
-          <tr>
-            <td>Alpha cell</td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:8%;background:#3b82f6"></div></div><span class="expr-val">0.8</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:9%;background:#f59e0b"></div></div><span class="expr-val">0.9</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:7%;background:#ea580c"></div></div><span class="expr-val">0.7</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:5%;background:#dc2626"></div></div><span class="expr-val">0.5</span></div></td>
-          </tr>
-          <tr>
-            <td>CD8⁺ T cell</td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:1%;background:#3b82f6"></div></div><span class="expr-val">0.1</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:1%;background:#f59e0b"></div></div><span class="expr-val">0.1</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#ea580c"></div></div><span class="expr-val">0.2</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#dc2626"></div></div><span class="expr-val">0.2</span></div></td>
-          </tr>
-          <tr>
-            <td>Ductal cell</td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:3%;background:#3b82f6"></div></div><span class="expr-val">0.3</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:3%;background:#f59e0b"></div></div><span class="expr-val">0.3</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:4%;background:#ea580c"></div></div><span class="expr-val">0.4</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:3%;background:#dc2626"></div></div><span class="expr-val">0.3</span></div></td>
-          </tr>
-          <tr>
-            <td>Acinar cell</td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#3b82f6"></div></div><span class="expr-val">0.2</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#f59e0b"></div></div><span class="expr-val">0.2</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#ea580c"></div></div><span class="expr-val">0.2</span></div></td>
-            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:1%;background:#dc2626"></div></div><span class="expr-val">0.1</span></div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Gene info sidebar -->
-    <div class="gene-info-card">
-      <div class="gene-info-head">
-        <div class="gene-info-name">INS</div>
-        <div class="gene-info-full">Insulin · Chr 11p15.5</div>
-      </div>
-      <div class="gene-info-body">
-        <div class="gene-info-row">
-          <span class="gene-info-row-label">Detected in</span>
-          <span class="gene-info-row-val">100% donors</span>
-        </div>
-        <div class="gene-info-row">
-          <span class="gene-info-row-label">Mean expr (all)</span>
-          <span class="gene-info-row-val">4.85 (norm)</span>
-        </div>
-        <div class="gene-info-row">
-          <span class="gene-info-row-label">Max in</span>
-          <span class="gene-info-row-val">Beta cell</span>
-        </div>
-        <div class="gene-info-row">
-          <span class="gene-info-row-label">Log2 FC (T1D/Ctrl)</span>
-          <span class="gene-info-row-val" style="color:var(--red)">−1.52</span>
-        </div>
-        <div class="gene-info-row">
-          <span class="gene-info-row-label">Adj. p-value</span>
-          <span class="gene-info-row-val">2.1 × 10⁻⁴⁸</span>
-        </div>
-        <div class="gene-info-row">
-          <span class="gene-info-row-label">Spatial pattern</span>
-          <span class="gene-info-row-val">Islet-restricted</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div id="viz-root"></div>
 </div>
 
 <footer>
@@ -389,6 +184,310 @@
     <a href="about.html#privacy">Privacy</a>
   </div>
 </footer>
+
+<script type="text/babel">
+  const { useState, useCallback } = React;
+
+  // ── Full gene list (autocomplete + dot data) ───────────
+  const GENE_LIST = ['BAX','CD8A','CDKN1A','FOXP3','GCG','HLA-A','INS','IRF1','PPY','PTPRC','SST','STAT1'];
+  const QUICK_CHIPS = ['INS','GCG','SST','PPY','CD8A','FOXP3','HLA-A','STAT1','IRF1','CDKN1A'];
+
+  // ── Cell type colours ──────────────────────────────────
+  const CELL_COLORS = {
+    'Acinar':          '#f97316',
+    'Alpha':           '#22c55e',
+    'B cells':         '#a855f7',
+    'Beta':            '#3b82f6',
+    'Delta':           '#06b6d4',
+    'Ductal':          '#84cc16',
+    'Endothelial':     '#f43f5e',
+    'Granulocytes':    '#d97706',
+    'Macrophages':     '#6366f1',
+    'Dendritic cells': '#10b981',
+    'Monocytes':       '#ec4899',
+    'NK cells':        '#14b8a6',
+    'Pre-B cells':     '#8b5cf6',
+    'T cells':         '#ef4444',
+    'Mesenchymal':     '#78716c',
+    'Unknown':         '#94a3b8',
+  };
+  const CELL_TYPES = Object.keys(CELL_COLORS);
+
+  // ── UMAP cluster centres ───────────────────────────────
+  const CENTERS = {
+    'Beta':           [ 2.6,  3.1], 'Alpha':          [-2.1,  3.6],
+    'Delta':          [-0.9,  5.6], 'Ductal':         [ 4.6, -1.4],
+    'Acinar':         [ 5.6,  1.1], 'Endothelial':    [ 0.4, -4.1],
+    'T cells':        [-4.6, -1.4], 'B cells':        [-6.1,  0.6],
+    'Macrophages':    [-5.1, -3.4], 'Dendritic cells':[-3.1, -5.1],
+    'Monocytes':      [-6.6, -5.1], 'NK cells':       [-4.1,  2.6],
+    'Pre-B cells':    [-6.6,  3.1], 'Granulocytes':   [ 3.1, -4.6],
+    'Mesenchymal':    [ 6.6, -3.4], 'Unknown':        [ 1.6, -6.6],
+  };
+  const COUNTS = {
+    'Beta':55,'Alpha':45,'Delta':25,'Ductal':30,'Acinar':40,
+    'Endothelial':20,'T cells':35,'B cells':25,'Macrophages':30,
+    'Dendritic cells':20,'Monocytes':20,'NK cells':25,'Pre-B cells':20,
+    'Granulocytes':20,'Mesenchymal':25,'Unknown':30,
+  };
+
+  // ── Seeded LCG random ──────────────────────────────────
+  function makeRand(seed) {
+    let s = seed >>> 0;
+    return () => { s = ((s * 1664525 + 1013904223) | 0) >>> 0; return s / 4294967296; };
+  }
+
+  // ── UMAP points (generated once) ──────────────────────
+  const UMAP_PTS = (() => {
+    const rand = makeRand(42), pts = [];
+    CELL_TYPES.forEach(ct => {
+      const [cx, cy] = CENTERS[ct];
+      for (let i = 0; i < COUNTS[ct]; i++) {
+        const u1 = Math.max(rand(), 1e-10), u2 = rand();
+        const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        const z2 = Math.sqrt(-2 * Math.log(u1)) * Math.sin(2 * Math.PI * u2);
+        pts.push({ x: cx + z1 * 0.75, y: cy + z2 * 0.75, ct });
+      }
+    });
+    return pts;
+  })();
+
+  // ── Dot plot mock data ─────────────────────────────────
+  const CONDITIONS = ['AB⁺LN⁻', 'AB⁺LN⁺', 'Control', 'T1D'];
+  const DOT_DATA = {
+    BAX:    {'AB⁺LN⁻':{pct:10.2,avg: 0.30},'AB⁺LN⁺':{pct:11.5,avg: 0.60},'Control':{pct: 9.1,avg:-0.10},'T1D':{pct:12.8,avg: 0.90}},
+    CD8A:   {'AB⁺LN⁻':{pct:11.8,avg: 0.80},'AB⁺LN⁺':{pct:12.3,avg: 0.95},'Control':{pct: 9.2,avg:-0.30},'T1D':{pct:13.0,avg: 1.00}},
+    CDKN1A: {'AB⁺LN⁻':{pct:10.3,avg: 0.20},'AB⁺LN⁺':{pct:10.8,avg: 0.40},'Control':{pct: 9.5,avg:-0.20},'T1D':{pct:11.2,avg: 0.50}},
+    FOXP3:  {'AB⁺LN⁻':{pct:10.5,avg: 0.40},'AB⁺LN⁺':{pct:11.1,avg: 0.60},'Control':{pct: 9.0,avg:-0.40},'T1D':{pct:12.0,avg: 0.80}},
+    GCG:    {'AB⁺LN⁻':{pct: 9.8,avg: 0.10},'AB⁺LN⁺':{pct:10.4,avg: 0.40},'Control':{pct:11.0,avg: 0.30},'T1D':{pct:10.7,avg: 0.50}},
+    'HLA-A':{'AB⁺LN⁻':{pct:12.5,avg: 0.90},'AB⁺LN⁺':{pct:12.8,avg: 0.95},'Control':{pct:10.0,avg: 0.10},'T1D':{pct:13.0,avg: 1.00}},
+    INS:    {'AB⁺LN⁻':{pct:11.2,avg: 0.50},'AB⁺LN⁺':{pct:10.0,avg: 0.20},'Control':{pct:12.5,avg: 0.80},'T1D':{pct: 9.3,avg:-0.30}},
+    IRF1:   {'AB⁺LN⁻':{pct: 9.8,avg: 0.30},'AB⁺LN⁺':{pct:10.5,avg: 0.50},'Control':{pct: 9.2,avg:-0.20},'T1D':{pct:11.5,avg: 0.70}},
+    PPY:    {'AB⁺LN⁻':{pct: 9.5,avg:-0.10},'AB⁺LN⁺':{pct: 9.8,avg: 0.20},'Control':{pct:10.5,avg: 0.40},'T1D':{pct: 9.2,avg:-0.20}},
+    PTPRC:  {'AB⁺LN⁻':{pct:12.1,avg: 0.70},'AB⁺LN⁺':{pct:12.9,avg: 0.95},'Control':{pct: 9.5,avg:-0.40},'T1D':{pct:13.0,avg: 1.00}},
+    SST:    {'AB⁺LN⁻':{pct: 9.5,avg: 0.20},'AB⁺LN⁺':{pct:10.2,avg: 0.30},'Control':{pct:10.8,avg: 0.50},'T1D':{pct: 9.8,avg: 0.10}},
+    STAT1:  {'AB⁺LN⁻':{pct:11.0,avg: 0.60},'AB⁺LN⁺':{pct:11.5,avg: 0.75},'Control':{pct: 9.3,avg:-0.30},'T1D':{pct:12.5,avg: 0.90}},
+  };
+
+  // ── Colour / size helpers ──────────────────────────────
+  function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+  function expColor(v) {
+    const t = Math.max(0, Math.min(1, (v + 0.5) / 1.5));
+    if (t < 0.5) { const s = t * 2; return `rgb(${lerp(255,249,s)},${lerp(237,115,s)},${lerp(153,22,s)})`; }
+    const s = (t - 0.5) * 2; return `rgb(${lerp(249,185,s)},${lerp(115,28,s)},${lerp(22,28,s)})`;
+  }
+  function pctR(v) { return 8 + ((v - 9) / 4) * 8; }
+
+  // ── UMAP (static, never changes) ──────────────────────
+  function UMAPPlot() {
+    const W = 550, H = 450;
+    const ml = 46, mr = 164, mt = 14, mb = 38;
+    const pw = W - ml - mr, ph = H - mt - mb;
+
+    const xs = UMAP_PTS.map(p => p.x), ys = UMAP_PTS.map(p => p.y);
+    const xMin = Math.min(...xs) - 0.6, xMax = Math.max(...xs) + 0.6;
+    const yMin = Math.min(...ys) - 0.6, yMax = Math.max(...ys) + 0.6;
+    const sx = v => ml + ((v - xMin) / (xMax - xMin)) * pw;
+    const sy = v => mt + ph - ((v - yMin) / (yMax - yMin)) * ph;
+    const xTicks = [-6,-4,-2,0,2,4,6].filter(v => v > xMin && v < xMax);
+    const yTicks = [-6,-4,-2,0,2,4,6].filter(v => v > yMin && v < yMax);
+
+    return (
+      <div className="viz-card">
+        <div className="viz-card-title">UMAP — Cell Type Distribution</div>
+        <svg width={W} height={H} style={{display:'block'}}>
+          {xTicks.map(v => <line key={v} x1={sx(v)} y1={mt} x2={sx(v)} y2={mt+ph} stroke="#f0f0f0" strokeWidth={1}/>)}
+          {yTicks.map(v => <line key={v} x1={ml} y1={sy(v)} x2={ml+pw} y2={sy(v)} stroke="#f0f0f0" strokeWidth={1}/>)}
+          <line x1={ml} y1={mt} x2={ml} y2={mt+ph} stroke="#e5e7eb" strokeWidth={1}/>
+          <line x1={ml} y1={mt+ph} x2={ml+pw} y2={mt+ph} stroke="#e5e7eb" strokeWidth={1}/>
+          {xTicks.map(v => (
+            <g key={v}>
+              <line x1={sx(v)} y1={mt+ph} x2={sx(v)} y2={mt+ph+4} stroke="#d1d5db"/>
+              <text x={sx(v)} y={mt+ph+14} textAnchor="middle" fontSize={9} fill="#4b5563" fontFamily="JetBrains Mono,monospace">{v}</text>
+            </g>
+          ))}
+          {yTicks.map(v => (
+            <g key={v}>
+              <line x1={ml-4} y1={sy(v)} x2={ml} y2={sy(v)} stroke="#d1d5db"/>
+              <text x={ml-7} y={sy(v)+3} textAnchor="end" fontSize={9} fill="#4b5563" fontFamily="JetBrains Mono,monospace">{v}</text>
+            </g>
+          ))}
+          <text x={ml+pw/2} y={H-5} textAnchor="middle" fontSize={10} fill="#4b5563" fontStyle="italic" fontFamily="JetBrains Mono,monospace">UMAP 1</text>
+          <text x={11} y={mt+ph/2} textAnchor="middle" fontSize={10} fill="#4b5563" fontStyle="italic" fontFamily="JetBrains Mono,monospace" transform={`rotate(-90,11,${mt+ph/2})`}>UMAP 2</text>
+          {UMAP_PTS.map((p, i) => (
+            <circle key={i} cx={sx(p.x)} cy={sy(p.y)} r={3} fill={CELL_COLORS[p.ct]} opacity={0.78}/>
+          ))}
+          {CELL_TYPES.map((ct, i) => (
+            <g key={ct}>
+              <circle cx={ml+pw+14} cy={mt+i*24+8} r={5} fill={CELL_COLORS[ct]}/>
+              <text x={ml+pw+24} y={mt+i*24+12} fontSize={10} fill="#374151" fontFamily="Inter,sans-serif">{ct}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    );
+  }
+
+  // ── Dot plot (updates with gene) ───────────────────────
+  function DotPlot({ gene }) {
+    const W = 430, H = 450;
+    const ml = 80, mr = 28, mt = 24, mb = 108;
+    const pw = W - ml - mr, ph = H - mt - mb;
+    const colW = pw / CONDITIONS.length;
+    const midY = mt + ph / 2;
+    const colX = i => ml + (i + 0.5) * colW;
+
+    return (
+      <div className="viz-card">
+        <div className="viz-card-title">Dot Plot — {gene} by Condition</div>
+        <svg width={W} height={H} style={{display:'block'}}>
+          <defs>
+            <linearGradient id="expGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"   stopColor={expColor(-0.5)}/>
+              <stop offset="50%"  stopColor={expColor( 0.25)}/>
+              <stop offset="100%" stopColor={expColor( 1.0)}/>
+            </linearGradient>
+          </defs>
+
+          {/* plot area background */}
+          <rect x={ml} y={mt} width={pw} height={ph} fill="#f8fafc" rx={2}/>
+
+          {/* horizontal grid lines (top + bottom border of row) */}
+          <line x1={ml} y1={mt}    x2={ml+pw} y2={mt}    stroke="#cbd5e1" strokeWidth={1}/>
+          <line x1={ml} y1={mt+ph} x2={ml+pw} y2={mt+ph} stroke="#cbd5e1" strokeWidth={1}/>
+
+          {/* vertical column separators (including outer borders) */}
+          {[0,1,2,3,4].map(i => (
+            <line key={i} x1={ml+i*colW} y1={mt} x2={ml+i*colW} y2={mt+ph} stroke="#cbd5e1" strokeWidth={1}/>
+          ))}
+
+          {/* gene label */}
+          <text x={ml-10} y={midY+4} textAnchor="end" fontSize={12} fontWeight="700" fill="#1e3a5f" fontFamily="JetBrains Mono,monospace">{gene}</text>
+
+          {/* condition labels */}
+          {CONDITIONS.map((c, i) => (
+            <text key={c} x={colX(i)} y={mt+ph+18} textAnchor="middle" fontSize={10} fill="#374151" fontFamily="Inter,sans-serif">{c}</text>
+          ))}
+
+          {/* dots */}
+          {CONDITIONS.map((c, i) => {
+            const d = DOT_DATA[gene]?.[c];
+            if (!d) return null;
+            return <circle key={c} cx={colX(i)} cy={midY} r={pctR(d.pct)} fill={expColor(d.avg)} stroke="rgba(0,0,0,0.08)" strokeWidth={1}/>;
+          })}
+
+          {/* size legend */}
+          <text x={ml} y={mt+ph+46} fontSize={9} fill="#4b5563" fontFamily="Inter,sans-serif">% expressing:</text>
+          {[9, 11, 13].map((v, i) => (
+            <g key={v}>
+              <circle cx={ml+18+i*54} cy={mt+ph+66} r={pctR(v)} fill="#e2e8f0" stroke="#94a3b8" strokeWidth={1}/>
+              <text x={ml+18+i*54} y={mt+ph+84} textAnchor="middle" fontSize={8} fill="#4b5563" fontFamily="Inter,sans-serif">{v}%</text>
+            </g>
+          ))}
+
+          {/* colour legend */}
+          <text x={W-126} y={mt+ph+46} fontSize={9} fill="#4b5563" fontFamily="Inter,sans-serif">avg expression:</text>
+          <rect x={W-126} y={mt+ph+52} width={98} height={9} fill="url(#expGrad)" rx={3}/>
+          <text x={W-126} y={mt+ph+72} fontSize={8} fill="#4b5563" fontFamily="Inter,sans-serif">−0.5</text>
+          <text x={W-28}  y={mt+ph+72} textAnchor="end" fontSize={8} fill="#4b5563" fontFamily="Inter,sans-serif">1.0</text>
+        </svg>
+      </div>
+    );
+  }
+
+  // ── App ────────────────────────────────────────────────
+  function App() {
+    const [gene,      setGene]      = useState('INS');
+    const [inputVal,  setInputVal]  = useState('INS');
+    const [suggestions, setSugg]    = useState([]);
+    const [showSugg,  setShowSugg]  = useState(false);
+
+    function applyGene(g) {
+      setInputVal(g);
+      if (DOT_DATA[g]) setGene(g);
+      setShowSugg(false);
+      setSugg([]);
+    }
+
+    function handleInput(e) {
+      const val = e.target.value;
+      setInputVal(val);
+      if (val.trim()) {
+        const q = val.toUpperCase();
+        const filtered = GENE_LIST.filter(g => g.includes(q));
+        setSugg(filtered);
+        setShowSugg(filtered.length > 0);
+      } else {
+        setSugg([]);
+        setShowSugg(false);
+      }
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter') {
+        const q = inputVal.toUpperCase();
+        const exact = GENE_LIST.find(g => g === q) || GENE_LIST.find(g => g.startsWith(q));
+        if (exact) applyGene(exact);
+        setShowSugg(false);
+      }
+      if (e.key === 'Escape') setShowSugg(false);
+    }
+
+    function handleSearchBtn() {
+      const q = inputVal.toUpperCase();
+      const match = GENE_LIST.find(g => g === q) || GENE_LIST.find(g => g.startsWith(q));
+      if (match) applyGene(match);
+    }
+
+    return (
+      <>
+        {/* Search bar with autocomplete */}
+        <div className="gene-search-wrap">
+          <div className="gene-search-row">
+            <input
+              className="gene-search"
+              type="text"
+              placeholder="Search gene (e.g. INS, HLA-A, CD8A, STAT1)…"
+              value={inputVal}
+              onChange={handleInput}
+              onKeyDown={handleKeyDown}
+              onFocus={() => { if (suggestions.length > 0) setShowSugg(true); }}
+              onBlur={() => setTimeout(() => setShowSugg(false), 150)}
+            />
+            <button className="gene-search-btn" onClick={handleSearchBtn}>Search</button>
+          </div>
+          {showSugg && (
+            <div className="gene-autocomplete">
+              {suggestions.map(g => (
+                <div key={g} className="gene-ac-item" onMouseDown={() => applyGene(g)}>{g}</div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Quick chips */}
+        <div className="gene-chips">
+          <span className="gene-chips-label">Quick:</span>
+          {QUICK_CHIPS.map(g => (
+            <span
+              key={g}
+              className={`gene-chip${gene === g ? ' active' : ''}`}
+              onClick={() => applyGene(g)}
+            >{g}</span>
+          ))}
+        </div>
+
+        {/* Charts */}
+        <div className="viz-charts-row">
+          <UMAPPlot/>
+          <DotPlot gene={gene}/>
+        </div>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('viz-root')).render(<App/>);
+</script>
 
 </body>
 </html>
