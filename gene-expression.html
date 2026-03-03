@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gene Expression · T1D Spatial Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .gene-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 56px 72px;
+  }
+
+  /* Search bar */
+  .gene-search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 32px;
+    align-items: center;
+  }
+
+  .gene-search {
+    flex: 1;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-size: 0.9rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .gene-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+  .gene-search::placeholder { color: var(--light); font-family: 'Inter', sans-serif; }
+
+  .gene-search-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 22px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .gene-search-btn:hover { background: #1d4fd8; }
+
+  /* Quick gene chips */
+  .gene-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+    align-items: center;
+  }
+
+  .gene-chips-label {
+    font-size: 0.75rem;
+    color: var(--light);
+    font-weight: 500;
+    margin-right: 4px;
+  }
+
+  .gene-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px solid var(--accent-border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .gene-chip:hover { background: var(--accent); color: white; }
+
+  /* Results area */
+  .gene-results-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* Heatmap table */
+  .heatmap-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .heatmap-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .heatmap-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .heatmap-subtitle {
+    font-size: 0.72rem;
+    color: var(--light);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  thead th {
+    padding: 10px 14px;
+    text-align: right;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  thead th:first-child { text-align: left; }
+
+  tbody tr { transition: background 0.12s; }
+  tbody tr:hover { background: var(--bg); }
+  tbody tr + tr { border-top: 1px solid var(--border); }
+
+  tbody td {
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+
+  tbody td:first-child {
+    color: var(--navy);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .expr-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .expr-track {
+    width: 80px;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .expr-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  .expr-val { font-size: 0.72rem; color: var(--muted); min-width: 36px; text-align: right; }
+
+  /* Side info panel */
+  .gene-info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: sticky;
+    top: 84px;
+  }
+
+  .gene-info-head {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--navy);
+    color: white;
+  }
+
+  .gene-info-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .gene-info-full {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .gene-info-body { padding: 16px 18px; }
+
+  .gene-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  .gene-info-row:last-child { border-bottom: none; }
+
+  .gene-info-row-label { color: var(--muted); }
+  .gene-info-row-val { color: var(--navy); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+  @media (max-width: 900px) {
+    .gene-wrap { padding: 24px; }
+    .gene-results-grid { grid-template-columns: 1fr; }
+    .gene-info-card { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">T1D Spatial Atlas</span>
+      <span class="logo-sub">Spatial Transcriptomics · Human Pancreas</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <a href="image.html">Image</a>
+    <a href="fov-viewer.html">FOV Viewer</a>
+    <a href="gene-expression.html" class="active">Gene Expression</a>
+    <div class="nav-divider"></div>
+    <a href="help.html">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<div class="page-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>Expression Analysis</div>
+  <div class="page-h1">Gene Expression</div>
+  <p class="page-desc">Query any of the 1,000 measured genes across all 20 donors, cell types, and disease stages. Compare expression levels and spatial patterns.</p>
+</div>
+
+<div class="gene-wrap">
+  <!-- Search -->
+  <div class="gene-search-row">
+    <input class="gene-search" type="text" placeholder="Search gene (e.g. INS, HLA-A, CD8A, STAT1)…" value="INS">
+    <button class="gene-search-btn">Search</button>
+  </div>
+
+  <!-- Quick genes -->
+  <div class="gene-chips">
+    <span class="gene-chips-label">Quick:</span>
+    <span class="gene-chip">INS</span>
+    <span class="gene-chip">GCG</span>
+    <span class="gene-chip">SST</span>
+    <span class="gene-chip">PPY</span>
+    <span class="gene-chip">CD8A</span>
+    <span class="gene-chip">FOXP3</span>
+    <span class="gene-chip">HLA-A</span>
+    <span class="gene-chip">STAT1</span>
+    <span class="gene-chip">IRF1</span>
+    <span class="gene-chip">CDKN1A</span>
+  </div>
+
+  <!-- Results -->
+  <div class="gene-results-grid">
+    <!-- Heatmap/table -->
+    <div class="heatmap-card">
+      <div class="heatmap-head">
+        <div>
+          <div class="heatmap-title">INS expression across cell types &amp; stages</div>
+          <div class="heatmap-subtitle">mean normalized expression · all donors · all FOVs</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Cell Type</th>
+            <th>Control</th>
+            <th>AB⁺LN⁻</th>
+            <th>AB⁺LN⁺</th>
+            <th>T1D</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Beta cell</td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:92%;background:#3b82f6"></div></div><span class="expr-val">9.2</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:80%;background:#f59e0b"></div></div><span class="expr-val">8.0</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:61%;background:#ea580c"></div></div><span class="expr-val">6.1</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:32%;background:#dc2626"></div></div><span class="expr-val">3.2</span></div></td>
+          </tr>
+          <tr>
+            <td>Alpha cell</td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:8%;background:#3b82f6"></div></div><span class="expr-val">0.8</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:9%;background:#f59e0b"></div></div><span class="expr-val">0.9</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:7%;background:#ea580c"></div></div><span class="expr-val">0.7</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:5%;background:#dc2626"></div></div><span class="expr-val">0.5</span></div></td>
+          </tr>
+          <tr>
+            <td>CD8⁺ T cell</td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:1%;background:#3b82f6"></div></div><span class="expr-val">0.1</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:1%;background:#f59e0b"></div></div><span class="expr-val">0.1</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#ea580c"></div></div><span class="expr-val">0.2</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#dc2626"></div></div><span class="expr-val">0.2</span></div></td>
+          </tr>
+          <tr>
+            <td>Ductal cell</td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:3%;background:#3b82f6"></div></div><span class="expr-val">0.3</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:3%;background:#f59e0b"></div></div><span class="expr-val">0.3</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:4%;background:#ea580c"></div></div><span class="expr-val">0.4</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:3%;background:#dc2626"></div></div><span class="expr-val">0.3</span></div></td>
+          </tr>
+          <tr>
+            <td>Acinar cell</td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#3b82f6"></div></div><span class="expr-val">0.2</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#f59e0b"></div></div><span class="expr-val">0.2</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:2%;background:#ea580c"></div></div><span class="expr-val">0.2</span></div></td>
+            <td><div class="expr-bar"><div class="expr-track"><div class="expr-fill" style="width:1%;background:#dc2626"></div></div><span class="expr-val">0.1</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Gene info sidebar -->
+    <div class="gene-info-card">
+      <div class="gene-info-head">
+        <div class="gene-info-name">INS</div>
+        <div class="gene-info-full">Insulin · Chr 11p15.5</div>
+      </div>
+      <div class="gene-info-body">
+        <div class="gene-info-row">
+          <span class="gene-info-row-label">Detected in</span>
+          <span class="gene-info-row-val">100% donors</span>
+        </div>
+        <div class="gene-info-row">
+          <span class="gene-info-row-label">Mean expr (all)</span>
+          <span class="gene-info-row-val">4.85 (norm)</span>
+        </div>
+        <div class="gene-info-row">
+          <span class="gene-info-row-label">Max in</span>
+          <span class="gene-info-row-val">Beta cell</span>
+        </div>
+        <div class="gene-info-row">
+          <span class="gene-info-row-label">Log2 FC (T1D/Ctrl)</span>
+          <span class="gene-info-row-val" style="color:var(--red)">−1.52</span>
+        </div>
+        <div class="gene-info-row">
+          <span class="gene-info-row-label">Adj. p-value</span>
+          <span class="gene-info-row-val">2.1 × 10⁻⁴⁸</span>
+        </div>
+        <div class="gene-info-row">
+          <span class="gene-info-row-label">Spatial pattern</span>
+          <span class="gene-info-row-val">Islet-restricted</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">T1D Spatial Atlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Spatial Transcriptomics Platform · v1.0</span>
+  </div>
+  <div class="footer-links">
+    <a href="help.html">Documentation</a>
+    <a href="help.html#data-access">Data Access</a>
+    <a href="about.html#contact">Contact</a>
+    <a href="about.html#privacy">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

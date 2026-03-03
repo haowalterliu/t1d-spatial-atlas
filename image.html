@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Viewer · T1D Spatial Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .image-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 56px 72px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* Filter sidebar */
+  .filter-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: sticky;
+    top: 84px;
+  }
+
+  .filter-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    background: var(--surface2);
+  }
+
+  .filter-group {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .filter-group:last-child { border-bottom: none; }
+
+  .filter-group-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--light);
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .filter-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text);
+    margin-bottom: 7px;
+    cursor: pointer;
+  }
+
+  .filter-check input { accent-color: var(--accent); }
+
+  .stage-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .dot-ctrl { background: var(--green); }
+  .dot-ab1  { background: var(--amber); }
+  .dot-ab2  { background: var(--orange); }
+  .dot-t1d  { background: var(--red); }
+
+  /* Image grid */
+  .image-main { display: flex; flex-direction: column; gap: 16px; }
+
+  .image-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .image-count {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .view-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .view-btn {
+    padding: 6px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+  }
+  .view-btn.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  .view-btn + .view-btn { border-left: 1px solid var(--border); }
+
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .img-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .img-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+  .img-thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: linear-gradient(135deg, var(--surface2) 0%, var(--border) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--light);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .img-thumb-label {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .img-card-body { padding: 12px 14px; }
+
+  .img-card-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+
+  .img-card-meta {
+    font-size: 0.72rem;
+    color: var(--light);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .img-stage-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 100px;
+    margin-top: 6px;
+  }
+
+  .badge-ctrl { background: var(--green-light);  color: var(--green); }
+  .badge-ab1  { background: var(--amber-light);  color: var(--amber); }
+  .badge-ab2  { background: var(--orange-light); color: var(--orange); }
+  .badge-t1d  { background: var(--red-light);    color: var(--red); }
+
+  @media (max-width: 900px) {
+    .image-wrap { grid-template-columns: 1fr; padding: 24px; }
+    .filter-panel { position: static; }
+    .image-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">T1D Spatial Atlas</span>
+      <span class="logo-sub">Spatial Transcriptomics · Human Pancreas</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <a href="image.html" class="active">Image</a>
+    <a href="fov-viewer.html">FOV Viewer</a>
+    <a href="gene-expression.html">Gene Expression</a>
+    <div class="nav-divider"></div>
+    <a href="help.html">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<div class="page-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>Tissue Imaging</div>
+  <div class="page-h1">Image Viewer</div>
+  <p class="page-desc">Browse CosMX tissue images from 20 donors across all disease stages. View morphology alongside spatial transcriptomics overlays.</p>
+</div>
+
+<div class="image-wrap">
+  <!-- Filters -->
+  <aside class="filter-panel">
+    <div class="filter-head">Filters</div>
+    <div class="filter-group">
+      <div class="filter-group-label">Disease Stage</div>
+      <label class="filter-check"><input type="checkbox" checked><span class="stage-dot dot-ctrl"></span>Control</label>
+      <label class="filter-check"><input type="checkbox" checked><span class="stage-dot dot-ab1"></span>AB⁺LN⁻</label>
+      <label class="filter-check"><input type="checkbox" checked><span class="stage-dot dot-ab2"></span>AB⁺LN⁺</label>
+      <label class="filter-check"><input type="checkbox" checked><span class="stage-dot dot-t1d"></span>Clinical T1D</label>
+    </div>
+    <div class="filter-group">
+      <div class="filter-group-label">Overlay</div>
+      <label class="filter-check"><input type="radio" name="overlay" checked> Cell boundaries</label>
+      <label class="filter-check"><input type="radio" name="overlay"> Gene expression</label>
+      <label class="filter-check"><input type="radio" name="overlay"> Cell type</label>
+      <label class="filter-check"><input type="radio" name="overlay"> Raw morphology</label>
+    </div>
+  </aside>
+
+  <!-- Image gallery -->
+  <div class="image-main">
+    <div class="image-toolbar">
+      <span class="image-count">Showing 20 images · 20 donors</span>
+      <div class="view-toggle">
+        <button class="view-btn active">Grid</button>
+        <button class="view-btn">List</button>
+      </div>
+    </div>
+
+    <div class="image-grid">
+      <!-- Example cards — repeat per donor -->
+      <div class="img-card">
+        <div class="img-thumb">🔬<span class="img-thumb-label">D001 · FOV 001</span></div>
+        <div class="img-card-body">
+          <div class="img-card-title">Donor D001</div>
+          <div class="img-card-meta">408 FOVs · 1,000 genes</div>
+          <span class="img-stage-badge badge-ctrl">Control</span>
+        </div>
+      </div>
+      <div class="img-card">
+        <div class="img-thumb">🔬<span class="img-thumb-label">D002 · FOV 001</span></div>
+        <div class="img-card-body">
+          <div class="img-card-title">Donor D002</div>
+          <div class="img-card-meta">408 FOVs · 1,000 genes</div>
+          <span class="img-stage-badge badge-ctrl">Control</span>
+        </div>
+      </div>
+      <div class="img-card">
+        <div class="img-thumb">🔬<span class="img-thumb-label">D006 · FOV 001</span></div>
+        <div class="img-card-body">
+          <div class="img-card-title">Donor D006</div>
+          <div class="img-card-meta">408 FOVs · 1,000 genes</div>
+          <span class="img-stage-badge badge-ab1">AB⁺LN⁻</span>
+        </div>
+      </div>
+      <div class="img-card">
+        <div class="img-thumb">🔬<span class="img-thumb-label">D011 · FOV 001</span></div>
+        <div class="img-card-body">
+          <div class="img-card-title">Donor D011</div>
+          <div class="img-card-meta">408 FOVs · 1,000 genes</div>
+          <span class="img-stage-badge badge-ab2">AB⁺LN⁺</span>
+        </div>
+      </div>
+      <div class="img-card">
+        <div class="img-thumb">🔬<span class="img-thumb-label">D016 · FOV 001</span></div>
+        <div class="img-card-body">
+          <div class="img-card-title">Donor D016</div>
+          <div class="img-card-meta">408 FOVs · 1,000 genes</div>
+          <span class="img-stage-badge badge-t1d">Clinical T1D</span>
+        </div>
+      </div>
+      <div class="img-card">
+        <div class="img-thumb">🔬<span class="img-thumb-label">D017 · FOV 001</span></div>
+        <div class="img-card-body">
+          <div class="img-card-title">Donor D017</div>
+          <div class="img-card-meta">408 FOVs · 1,000 genes</div>
+          <span class="img-stage-badge badge-t1d">Clinical T1D</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">T1D Spatial Atlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Spatial Transcriptomics Platform · v1.0</span>
+  </div>
+  <div class="footer-links">
+    <a href="help.html">Documentation</a>
+    <a href="help.html#data-access">Data Access</a>
+    <a href="about.html#contact">Contact</a>
+    <a href="about.html#privacy">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

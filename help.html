@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help & Documentation · T1D Spatial Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .help-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 56px 72px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 84px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 0;
+    overflow: hidden;
+  }
+
+  .toc-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--light);
+    padding: 0 16px;
+    margin-bottom: 10px;
+  }
+
+  .toc a {
+    display: block;
+    padding: 7px 16px;
+    font-size: 0.83rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .toc a:hover { color: var(--accent); background: var(--accent-light); border-left-color: var(--accent); }
+  .toc a.active { color: var(--accent); font-weight: 600; border-left-color: var(--accent); background: var(--accent-light); }
+
+  /* Docs content */
+  .docs {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  .doc-section { scroll-margin-top: 84px; }
+
+  .doc-h2 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .doc-p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+
+  .doc-h3 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 10px;
+    margin-top: 24px;
+  }
+
+  .doc-ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .doc-ul li {
+    font-size: 0.86rem;
+    color: var(--muted);
+    line-height: 1.6;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .doc-ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 0.8rem;
+  }
+
+  .doc-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    color: var(--navy);
+    line-height: 1.8;
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+  }
+
+  .doc-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--border);
+  }
+
+  .doc-table td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .doc-table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--navy);
+  }
+
+  @media (max-width: 900px) {
+    .help-wrap { grid-template-columns: 1fr; padding: 24px; }
+    .toc { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">T1D Spatial Atlas</span>
+      <span class="logo-sub">Spatial Transcriptomics · Human Pancreas</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <a href="image.html">Image</a>
+    <a href="fov-viewer.html">FOV Viewer</a>
+    <a href="gene-expression.html">Gene Expression</a>
+    <div class="nav-divider"></div>
+    <a href="help.html" class="active">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<div class="page-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>Documentation</div>
+  <div class="page-h1">Help &amp; Documentation</div>
+  <p class="page-desc">Everything you need to navigate and analyze the T1D Spatial Atlas dataset, platform features, and data access.</p>
+</div>
+
+<div class="help-wrap">
+  <!-- Table of contents -->
+  <nav class="toc">
+    <div class="toc-label">Contents</div>
+    <a href="#overview" class="active">Overview</a>
+    <a href="#dataset">Dataset</a>
+    <a href="#data-access">Data Access</a>
+    <a href="#fov-viewer">FOV Viewer</a>
+    <a href="#gene-expression-guide">Gene Expression</a>
+    <a href="#ai-chat">AI Chat</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+
+  <!-- Docs body -->
+  <div class="docs">
+    <div class="doc-section" id="overview">
+      <div class="doc-h2">Overview</div>
+      <p class="doc-p">The T1D Spatial Atlas is an interactive platform for exploring CosMX (NanoString) spatial transcriptomics data from human pancreatic tissues. It provides tools to visualize gene expression, explore spatial organization, and use AI to perform analysis across 20 donors representing four key stages of type 1 diabetes progression.</p>
+      <p class="doc-p">The platform includes a <strong>FOV Viewer</strong> for spatial exploration, a <strong>Gene Expression</strong> module for querying the 1,000-gene panel, an <strong>Image Viewer</strong> for tissue morphology, and an <strong>AI Chat</strong> interface for natural-language analysis.</p>
+    </div>
+
+    <div class="doc-section" id="dataset">
+      <div class="doc-h2">Dataset</div>
+      <div class="doc-h3">Cohort</div>
+      <table class="doc-table">
+        <thead><tr><th>Stage</th><th>Label</th><th>N Donors</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Stage 1</td><td>Control</td><td>5</td><td>Healthy, no autoimmunity or pancreatic pathology</td></tr>
+          <tr><td>Stage 2</td><td>AB⁺LN⁻</td><td>5</td><td>Autoantibody-positive, no lymphocyte infiltration</td></tr>
+          <tr><td>Stage 3</td><td>AB⁺LN⁺</td><td>5</td><td>Autoantibody-positive with insulitis</td></tr>
+          <tr><td>Stage 4</td><td>Clinical T1D</td><td>5</td><td>Established type 1 diabetes diagnosis</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-h3">Key Statistics</div>
+      <ul class="doc-ul">
+        <li><strong>1,139,248</strong> cells profiled at single-cell resolution</li>
+        <li><strong>408</strong> Fields of View (FOVs) across all donors</li>
+        <li><strong>1,000</strong> genes measured per cell (CosMX panel)</li>
+        <li>Full spatial XY coordinates preserved for each cell</li>
+        <li>Cell type annotations from supervised classification</li>
+      </ul>
+    </div>
+
+    <div class="doc-section" id="data-access">
+      <div class="doc-h2">Data Access</div>
+      <p class="doc-p">The underlying data is available via controlled access through the NIDDK Central Repository. Researchers requiring raw data files should apply through the repository portal. The platform provides exploratory analysis without requiring download of raw files.</p>
+      <div class="doc-code">
+# Example: access processed data via API (placeholder)<br>
+GET /api/v1/genes?gene=INS&amp;stage=T1D&amp;cell_type=beta<br>
+Authorization: Bearer &lt;your-token&gt;
+      </div>
+    </div>
+
+    <div class="doc-section" id="fov-viewer">
+      <div class="doc-h2">FOV Viewer</div>
+      <p class="doc-p">The FOV Viewer lets you navigate the spatial layout of individual fields of view. Use the control panel to:</p>
+      <ul class="doc-ul">
+        <li>Select a <strong>donor</strong> and specific <strong>FOV</strong> to display</li>
+        <li>Color cells by <strong>cell type</strong>, <strong>gene expression</strong>, or <strong>cluster</strong></li>
+        <li>Adjust dot <strong>opacity</strong> for layered overlays</li>
+        <li>Zoom in/out to inspect islet structures</li>
+      </ul>
+    </div>
+
+    <div class="doc-section" id="gene-expression-guide">
+      <div class="doc-h2">Gene Expression</div>
+      <p class="doc-p">Use the Gene Expression page to query any of the 1,000 panel genes. Enter a gene symbol (e.g. <code>INS</code>, <code>CD8A</code>, <code>HLA-A</code>) to see expression levels broken down by cell type and disease stage.</p>
+      <p class="doc-p">Expression values are normalized and log-transformed. Log2 fold change and adjusted p-values are computed via pseudobulk differential expression analysis.</p>
+    </div>
+
+    <div class="doc-section" id="ai-chat">
+      <div class="doc-h2">AI Chat</div>
+      <p class="doc-p">The AI Chat interface allows natural-language queries about the dataset. Example questions:</p>
+      <ul class="doc-ul">
+        <li>Which genes are most upregulated in beta cells at T1D stage?</li>
+        <li>Compare islet composition between Control and AB⁺LN⁺</li>
+        <li>Show top markers for CD8⁺ T cells across all stages</li>
+        <li>What is the spatial distribution of STAT1 in insulitis?</li>
+      </ul>
+    </div>
+
+    <div class="doc-section" id="faq">
+      <div class="doc-h2">FAQ</div>
+      <div class="doc-h3">What sequencing platform was used?</div>
+      <p class="doc-p">Data was generated using the CosMX Spatial Molecular Imager (NanoString), enabling single-cell spatial profiling with a 1,000-gene panel.</p>
+      <div class="doc-h3">How were cell types annotated?</div>
+      <p class="doc-p">Cell types were annotated using a combination of reference-based label transfer and manual curation of marker gene expression. Major cell types include beta, alpha, delta, PP, ductal, acinar, stellate, endothelial, and immune cells.</p>
+      <div class="doc-h3">Can I download the raw data?</div>
+      <p class="doc-p">Raw data is available through controlled access via the <a href="about.html#contact" style="color:var(--accent)">repository portal</a>. Contact us for access information.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">T1D Spatial Atlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Spatial Transcriptomics Platform · v1.0</span>
+  </div>
+  <div class="footer-links">
+    <a href="help.html">Documentation</a>
+    <a href="help.html#data-access">Data Access</a>
+    <a href="about.html#contact">Contact</a>
+    <a href="about.html#privacy">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOV Viewer · T1D Spatial Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .viewer-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 56px 72px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  /* Control panel */
+  .ctrl-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: sticky;
+    top: 84px;
+  }
+
+  .ctrl-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    background: var(--surface2);
+  }
+
+  .ctrl-section {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ctrl-section:last-child { border-bottom: none; }
+
+  .ctrl-section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--light);
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .ctrl-select {
+    width: 100%;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 0.82rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    cursor: pointer;
+  }
+  .ctrl-select:focus { border-color: var(--accent); }
+
+  .ctrl-range-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--light);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 6px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    margin-top: 8px;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .legend-swatch {
+    width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+  }
+
+  /* Viewer canvas */
+  .viewer-main { display: flex; flex-direction: column; gap: 12px; }
+
+  .canvas-row {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .viewer-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .viewer-badge {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 6px;
+  }
+
+  .viewer-badge-label {
+    font-size: 0.65rem;
+    color: var(--light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+  }
+
+  .cell-types-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cell-types-head {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--light);
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .gene-submit-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .gene-submit-btn:hover { opacity: 0.85; }
+
+  .viewer-zoom-btns {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .zoom-btn {
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .zoom-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  .viewer-canvas {
+    background: #0f1523;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Simulated FOV visualization */
+  .fov-dots {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(30, 1fr);
+    grid-template-rows: repeat(18, 1fr);
+    gap: 1px;
+    padding: 10px;
+    opacity: 0.85;
+  }
+
+  .fov-dot {
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+
+  .viewer-overlay-text {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.8;
+  }
+
+  .viewer-crosshair {
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+  }
+
+  .fov-meta-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .fov-meta-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .fov-meta-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--light);
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 4px;
+  }
+
+  .fov-meta-value {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  @media (max-width: 900px) {
+    .viewer-layout { grid-template-columns: 1fr; padding: 24px; }
+    .ctrl-panel { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">T1D Spatial Atlas</span>
+      <span class="logo-sub">Spatial Transcriptomics · Human Pancreas</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <a href="image.html">Image</a>
+    <a href="fov-viewer.html" class="active">FOV Viewer</a>
+    <a href="gene-expression.html">Gene Expression</a>
+    <div class="nav-divider"></div>
+    <a href="help.html">Help</a>
+    <a href="about.html" class="btn-nav">About</a>
+  </nav>
+</header>
+
+<div class="page-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>Spatial Explorer</div>
+  <div class="page-h1">FOV Viewer</div>
+  <p class="page-desc">Interactively explore Fields of View across donors, color cells by gene expression or cell type, and navigate the spatial landscape of the pancreatic tissue.</p>
+</div>
+
+<div class="viewer-layout">
+  <!-- Control panel -->
+  <aside class="ctrl-panel">
+    <div class="ctrl-head">Controls</div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-section-label">Condition</div>
+      <select class="ctrl-select">
+        <option>Control</option>
+        <option>AB⁺LN⁻</option>
+        <option>AB⁺LN⁺</option>
+        <option>T1D</option>
+      </select>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-section-label">Donor</div>
+      <select class="ctrl-select">
+        <option>HPAP-001</option>
+        <option>HPAP-002</option>
+        <option>HPAP-003</option>
+        <option>HPAP-004</option>
+        <option>HPAP-005</option>
+        <option>HPAP-006</option>
+        <option>HPAP-007</option>
+        <option>HPAP-008</option>
+        <option>HPAP-009</option>
+        <option>HPAP-010</option>
+        <option>HPAP-011</option>
+        <option>HPAP-012</option>
+        <option>HPAP-013</option>
+        <option>HPAP-014</option>
+        <option>HPAP-015</option>
+        <option>HPAP-016</option>
+        <option>HPAP-017</option>
+        <option>HPAP-018</option>
+        <option>HPAP-019</option>
+        <option>HPAP-020</option>
+      </select>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-section-label">FOV</div>
+      <select class="ctrl-select">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7</option>
+        <option>8</option>
+        <option>9</option>
+        <option>10</option>
+        <option>11</option>
+        <option>12</option>
+        <option>13</option>
+        <option>14</option>
+        <option>15</option>
+        <option>16</option>
+        <option>17</option>
+        <option>18</option>
+        <option>19</option>
+        <option>20</option>
+        <option>21</option>
+        <option>22</option>
+        <option>23</option>
+        <option>24</option>
+        <option>25</option>
+      </select>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-section-label">Gene Display</div>
+      <select class="ctrl-select" id="geneSelect">
+        <option>None</option>
+        <option>Single gene</option>
+        <option>Multiple genes</option>
+      </select>
+      <button class="gene-submit-btn">Apply</button>
+    </div>
+  </aside>
+
+  <!-- Viewer -->
+  <div class="viewer-main">
+    <div class="viewer-toolbar">
+      <span class="viewer-badge"><span class="viewer-badge-label">Condition</span><span id="badge-condition">Control</span></span>
+      <span class="viewer-badge"><span class="viewer-badge-label">Donor</span><span id="badge-donor">HPAP-001</span></span>
+      <span class="viewer-badge"><span class="viewer-badge-label">FOV</span><span id="badge-fov">1</span></span>
+      <div class="viewer-zoom-btns">
+        <button class="zoom-btn">−</button>
+        <button class="zoom-btn">+</button>
+        <button class="zoom-btn" title="Reset">⊙</button>
+      </div>
+    </div>
+
+    <!-- Simulated canvas + Cell Types -->
+    <div class="canvas-row">
+      <div class="viewer-canvas">
+        <div class="fov-dots" id="fovDots"></div>
+        <div class="viewer-crosshair"></div>
+      </div>
+      <div class="cell-types-panel">
+        <div class="cell-types-head">Cell Types</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#3b82f6"></div>Beta cell</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#f59e0b"></div>Alpha cell</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#ef4444"></div>CD8⁺ T cell</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#8b5cf6"></div>CD4⁺ T cell</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#10b981"></div>Ductal cell</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#6b7280"></div>Acinar cell</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">T1D Spatial Atlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Spatial Transcriptomics Platform · v1.0</span>
+  </div>
+  <div class="footer-links">
+    <a href="help.html">Documentation</a>
+    <a href="help.html#data-access">Data Access</a>
+    <a href="about.html#contact">Contact</a>
+    <a href="about.html#privacy">Privacy</a>
+  </div>
+</footer>
+
+<script>
+  // Render simulated cell dots in the FOV canvas
+  const colors = ['#3b82f6','#f59e0b','#ef4444','#8b5cf6','#10b981','#6b7280'];
+  const container = document.getElementById('fovDots');
+  for (let i = 0; i < 540; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'fov-dot';
+    const size = Math.random() * 8 + 3;
+    dot.style.cssText = `width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};opacity:${(Math.random()*0.5+0.4).toFixed(2)};`;
+    container.appendChild(dot);
+  }
+
+  // Sync selects to toolbar badges and overlay
+  const selects = document.querySelectorAll('.ctrl-select');
+  const conditionSel = selects[0], donorSel = selects[1], fovSel = selects[2];
+
+  function updateBadges() {
+    document.getElementById('badge-condition').textContent = conditionSel.value;
+    document.getElementById('badge-donor').textContent = donorSel.value;
+    document.getElementById('badge-fov').textContent = fovSel.value;
+    document.getElementById('overlay-condition').textContent = 'Stage: ' + conditionSel.value;
+    document.getElementById('overlay-donor').textContent = 'Donor: ' + donorSel.value;
+    document.getElementById('overlay-fov').textContent = fovSel.value;
+  }
+
+  conditionSel.addEventListener('change', updateBadges);
+  donorSel.addEventListener('change', updateBadges);
+  fovSel.addEventListener('change', updateBadges);
+</script>
+</body>
+</html>

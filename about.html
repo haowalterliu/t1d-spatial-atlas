@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About · T1D Spatial Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .about-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 56px 72px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .about-main { display: flex; flex-direction: column; gap: 48px; }
+
+  .about-h2 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    scroll-margin-top: 84px;
+  }
+
+  .about-p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.85;
+    margin-bottom: 14px;
+  }
+
+  /* Team cards */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s;
+  }
+  .team-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.07); border-color: var(--accent-border); }
+
+  .team-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    color: white;
+    font-weight: 700;
+    font-family: 'Source Serif 4', serif;
+    flex-shrink: 0;
+  }
+
+  .team-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 2px;
+  }
+
+  .team-role {
+    font-size: 0.75rem;
+    color: var(--light);
+  }
+
+  /* Contact form */
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-field { flex: 1; }
+
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+
+  .form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .form-input {
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    padding: 9px 13px;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+
+  textarea.form-input { resize: vertical; min-height: 100px; }
+
+  /* Sidebar info boxes */
+  .about-sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 84px; }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .info-card-head {
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .info-card-body { padding: 14px 16px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row:last-child { border-bottom: none; }
+
+  .info-row-label { color: var(--muted); }
+  .info-row-val { color: var(--navy); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+  .badge-wrap { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 16px; }
+
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  @media (max-width: 900px) {
+    .about-wrap { grid-template-columns: 1fr; padding: 24px; }
+    .about-sidebar { position: static; }
+    .team-grid { grid-template-columns: 1fr; }
+    .form-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></svg>
+    </div>
+    <div class="logo-label">
+      <span class="logo-title">T1D Spatial Atlas</span>
+      <span class="logo-sub">Spatial Transcriptomics · Human Pancreas</span>
+    </div>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="chat.html">Chat with AI</a>
+    <a href="image.html">Image</a>
+    <a href="fov-viewer.html">FOV Viewer</a>
+    <a href="gene-expression.html">Gene Expression</a>
+    <div class="nav-divider"></div>
+    <a href="help.html">Help</a>
+    <a href="about.html" class="btn-nav active">About</a>
+  </nav>
+</header>
+
+<div class="page-hero">
+  <div class="page-eyebrow"><span class="eyebrow-line"></span>The Project</div>
+  <div class="page-h1">About the T1D Spatial Atlas</div>
+  <p class="page-desc">An open research platform built to advance understanding of type 1 diabetes progression using spatial transcriptomics at single-cell resolution.</p>
+</div>
+
+<div class="about-wrap">
+  <main class="about-main">
+    <!-- About -->
+    <section id="about">
+      <div class="about-h2">About the Project</div>
+      <p class="about-p">The T1D Spatial Atlas is a research initiative combining CosMX (NanoString) spatial transcriptomics with AI-powered analysis to map the cellular and molecular landscape of human pancreatic tissue across four stages of type 1 diabetes (T1D) progression.</p>
+      <p class="about-p">By profiling over 1.1 million cells from 20 donors at single-cell resolution with preserved spatial coordinates, this atlas enables researchers to understand how the immune microenvironment changes during insulitis and beta cell loss.</p>
+    </section>
+
+    <!-- Team -->
+    <section id="team">
+      <div class="about-h2">Team</div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">PI</div>
+          <div>
+            <div class="team-name">Principal Investigator</div>
+            <div class="team-role">Diabetes Research Center</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">SC</div>
+          <div>
+            <div class="team-name">Spatial Transcriptomics Core</div>
+            <div class="team-role">CosMX Data Generation</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">BI</div>
+          <div>
+            <div class="team-name">Bioinformatics Team</div>
+            <div class="team-role">Analysis Pipeline</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">SE</div>
+          <div>
+            <div class="team-name">Software Engineering</div>
+            <div class="team-role">Platform Development</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <div class="about-h2">Contact</div>
+      <p class="about-p">For data access requests, collaboration inquiries, or platform questions, please reach out using the form below or email us directly.</p>
+      <form class="contact-form">
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Name</label>
+            <input class="form-input" type="text" placeholder="Your name">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" placeholder="your@institution.edu">
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Subject</label>
+          <input class="form-input" type="text" placeholder="Data access / Collaboration / Bug report…">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Message</label>
+          <textarea class="form-input" placeholder="Your message…"></textarea>
+        </div>
+        <div>
+          <a href="#" class="btn-primary" style="display:inline-flex">Send Message</a>
+        </div>
+      </form>
+    </section>
+
+    <!-- Privacy -->
+    <section id="privacy">
+      <div class="about-h2">Privacy &amp; Ethics</div>
+      <p class="about-p">All human tissue samples were collected under IRB-approved protocols with informed donor consent. Data has been de-identified and is shared in accordance with NIH data sharing policies. Controlled-access data is available through the NIDDK Central Repository.</p>
+      <p class="about-p">This platform does not collect personal user data beyond anonymized usage analytics.</p>
+    </section>
+  </main>
+
+  <!-- Sidebar -->
+  <aside class="about-sidebar">
+    <div class="info-card">
+      <div class="info-card-head">Dataset Info</div>
+      <div class="info-card-body">
+        <div class="info-row"><span class="info-row-label">Platform</span><span class="info-row-val">CosMX v1.0</span></div>
+        <div class="info-row"><span class="info-row-label">Donors</span><span class="info-row-val">20</span></div>
+        <div class="info-row"><span class="info-row-label">Cells</span><span class="info-row-val">1,139,248</span></div>
+        <div class="info-row"><span class="info-row-label">FOVs</span><span class="info-row-val">408</span></div>
+        <div class="info-row"><span class="info-row-label">Genes</span><span class="info-row-val">1,000</span></div>
+        <div class="info-row"><span class="info-row-label">Atlas version</span><span class="info-row-val">v1.0</span></div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-head">Technologies</div>
+      <div class="badge-wrap">
+        <span class="badge">CosMX</span>
+        <span class="badge">NanoString</span>
+        <span class="badge">Spatial Transcriptomics</span>
+        <span class="badge">Single-cell</span>
+        <span class="badge">Python</span>
+        <span class="badge">Seurat</span>
+        <span class="badge">Scanpy</span>
+        <span class="badge">AI/ML</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-head">Links</div>
+      <div class="info-card-body" style="padding:10px 16px">
+        <div class="info-row"><a href="help.html#data-access" style="color:var(--accent);font-size:0.82rem;text-decoration:none">→ Data Access Portal</a></div>
+        <div class="info-row"><a href="help.html" style="color:var(--accent);font-size:0.82rem;text-decoration:none">→ Documentation</a></div>
+        <div class="info-row"><a href="#contact" style="color:var(--accent);font-size:0.82rem;text-decoration:none">→ Contact Us</a></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <span class="footer-logo">T1D Spatial Atlas</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-text">Spatial Transcriptomics Platform · v1.0</span>
+  </div>
+  <div class="footer-links">
+    <a href="help.html">Documentation</a>
+    <a href="help.html#data-access">Data Access</a>
+    <a href="about.html#contact">Contact</a>
+    <a href="about.html#privacy">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>
